@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# "wrapper" mode, to kill openssl when user presses "stop" in browser.
+# If $1 is empty - this script is started by lighttpd
+# and it spawns a subprocess ($PID) with non-empty $1.
+# When user presses "stop" - lighttpd send SIGTERM to this script,
+# and it terminates all children of $PID subprocess, including openssl.
+# based on https://unix.stackexchange.com/q/146756
+if test -z "$1"; then
+	trap 'pkill -P $PID' TERM INT
+	exec 3<&0
+	"$0" subprocess <&3 &
+	PID=$!
+	wait $PID
+	exit
+fi
+
+echo "HTTP/1.0 200 OK"
+# echo "Cache-Control: max-age=600" # 10min
+# echo "Cache-Control: max-age=3600" #1h
+# echo "Cache-Control: max-age=86400" #1d
+if test "${PATH_INFO: -12}" == '/favicon.txt'; then
+	echo "Cache-Control: max-age=31536000" #1y
+else
+	echo "Cache-Control: max-age=604800" #1w
+fi
+
+# echo
+# echo "[$0]"
+# export
+# exit
+
+# convert HTTP request to gemini
+host="${PATH_INFO:1}"
+host="${host%%/*}"
+[[ "$host" != '*:*' ]] && host="$host:1965"
+gemini="gemini:/${REQUEST_URI:${#SCRIPT_NAME}}"
+
+# echo
+# echo $host
+# echo $gemini
+# exit
+
+# echo
+# echo echo "$gemini" \| openssl s_client -crlf -connect $host -quiet 2\>/dev/null
+# exit
+
+# ## TLS resumption - promises speed increase, but I didn't notice a difference
+# # sess_file="/tmp/sess-$(echo "$host" | md5sum | head -c32)"
+# sess_file="/tmp/sess-$host"
+# test -f "$sess_file" && sess="-sess_in $sess_file"
+# sess="$sess -sess_out $sess_file"
+
+echo "$gemini" | openssl s_client -crlf -connect "$host" $sess -quiet 2>/dev/null | (
+	# convert gemini response to HTTP
+	read -r code line;
+	test -z "$code" && code="00"
+	echo "Response-Code: $code"
+	test "$code" = 20 && echo "Content-Type: $line" || echo "Meta: $line"
+	echo
+	cat
+)

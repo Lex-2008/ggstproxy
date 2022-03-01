@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# "wrapper" mode, to kill telnet when user presses "stop" in browser.
+# If $1 is empty - this script is started by lighttpd
+# and it spawns a subprocess ($PID) with non-empty $1.
+# When user presses "stop" - lighttpd send SIGTERM to this script,
+# and it terminates all children of $PID subprocess, including openssl.
+# based on https://unix.stackexchange.com/q/146756
+if test -z "$1"; then
+	trap 'pkill -P $PID' TERM INT
+	exec 3<&0
+	"$0" subprocess <&3 &
+	PID=$!
+	wait $PID
+	exit
+fi
+
+echo "HTTP/1.0 200 OK"
+# echo "Cache-Control: max-age=600" # 10min
+# echo "Cache-Control: max-age=3600" #1h
+# echo "Cache-Control: max-age=86400" #1d
+if test "${PATH_INFO: -12}" == '/favicon.txt'; then
+	echo "Cache-Control: max-age=31536000" #1y
+else
+	echo "Cache-Control: max-age=604800" #1w
+fi
+
+# echo
+# echo "[$0]"
+# export
+# exit
+
+tab="$(echo -e '\t')"
+
+# convert HTTP request to gopher
+host="${PATH_INFO:1}"
+host="${host%%/*}"
+type="${PATH_INFO:$(( ${#host} + 2 )):1}"
+test -z "$type" && type=1
+# url="${PATH_INFO:$(( ${#host} + 3 ))}"
+url="${REQUEST_URI:${#SCRIPT_NAME}}"
+url="${url:$(( ${#host} + 3 ))}"
+test "$type" = 7 && url="${url/\?/$tab}" # replace first ? with tab
+port=70
+if [[ "$host" == '*:*' ]]; then
+	port="${host##*:}"
+	host="${host%:*}"
+fi
+
+# echo
+# echo $host $port
+# echo $type
+# echo "$url"
+# exit
+
+datafile="/tmp/gopher-$$"
+trap 'rm $datafile' EXIT
+
+if echo "$url" | nc "$host" "$port" >"$datafile"; then
+	# convert gopher response to HTTP
+	echo "Response-Code: go-ok"
+else
+	echo "Response-Code: go-ko"
+fi
+echo "Gopher-Type: $type"
+case "$type" in
+	( 0 ) echo "Content-Type: text/plain" ;;
+	( 1|7 ) echo "Content-Type: text/gophermap" ;;
+	( I ) echo "Content-Type: image/png" ;;
+	( * ) echo "Content-Type: text/plain" ;;
+esac
+echo
+cat "$datafile"

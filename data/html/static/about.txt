@@ -1,0 +1,36 @@
+a Gopher, Gemini, Spartan, Titan proxy
+======================================
+
+Please let me know if you're going to use it and need some help.
+
+Used libs
+---------
+
+Parsing of gmi files and their rendering was performed by:
+
+* Modified gemini-to-html by RangerMauve (AGPL license):
+https://github.com/RangerMauve/gemini-to-html
+To see my modifications, open gemini-to-html-parse.js and gemini-to-html-render.js
+files in the directory with this file.
+
+It has two dependencies:
+* escape-goat by sindresorhus (MIT license):
+https://github.com/sindresorhus/escape-goat
+* slug by Trott (MIT license):
+https://github.com/Trott/slug
+
+Auto theme generator based on the one from kristall browser:
+
+* kristall by MasterQ32 (GPL-3.0 license):
+https://github.com/MasterQ32/kristall
+Specifically, this function:
+https://github.com/MasterQ32/kristall/blob/master/src/documentstyle.cpp#L515
+
+It requires computing md5 hashes. For that, this library was used:
+* JavaScript-MD5 by blueimp (MIT license):
+https://github.com/blueimp/JavaScript-MD5
+
+If you know how this combination of licenses dictate license for the whole product -
+please let me know and use that. Otherwise, consider my addition to be under MIT,
+zero-clause BSD, CC0, or WTFPL license, whichever you prefer.
+

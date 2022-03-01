@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8">
+<!-- icon idea from https://based.cooking/ -->
+<link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%221em%22 font-size=%2280%22>♊</text></svg>">
+<link rel="stylesheet" href="/static/style.css">
+<style id="auto"></style>
+</head><body>
+
+<header>
+	<button onclick="this.firstChild.click()"><a id="home">TOP</a></button>
+	<button onclick="this.firstChild.click()"><a id="up">up</a></button>
+	<input type="url" id="url" onkeypress="if(event.keyCode==13)location=url2proxyURL(this.value)">
+	<button onclick="location=url2proxyURL(url.value)">go</button>
+	<button id="editshow" onclick="edit_show()" style="display:none">edit</button>
+	<button onclick="show_src()">src</button>
+</header>
+<main id="main"></main>
+<pre id="src" style='display:none'></pre>
+<div id="editdiv" style='display:none'>
+	<textarea id="edittext" cols=80 rows=25></textarea>
+	<div>
+		<label>Edit token:<input id="edittoken" type="password"></label>
+		<label>mime-type:<input id="edittype"></label>
+		<button onclick="editSubmit()">submit</button>
+	</div>
+</div>
+<footer>
+	<a id="about" href="/static/about.txt">About</a>
+	<span id="footer"></span>
+	<span id="ago"></span>
+</footer>
+
+<script src="/static/slug.js"></script>
+<script src="/static/md5.min.js"></script>
+<script src="/static/escape-goat.js"></script>
+<script src="/static/gemini-to-html-parse.js"></script>
+<script src="/static/gemini-to-html-render.js"></script>
+<script src="/static/script.js"></script>
+</body></html>

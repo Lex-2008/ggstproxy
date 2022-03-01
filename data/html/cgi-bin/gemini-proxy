@@ -1,0 +1,56 @@
+#!/bin/sh
+
+echo "HTTP/1.0 200 OK"
+# echo "Cache-Control: max-age=600" # 10min
+# echo "Cache-Control: max-age=3600" #1h
+# echo "Cache-Control: max-age=31536000" #1y
+if test "${PATH_INFO: -12}" == '/favicon.txt'; then
+	echo "Cache-Control: max-age=604800" #1w
+else
+	echo "Cache-Control: max-age=86400" #1d
+fi
+
+# echo
+# echo "[$0]"
+# export
+# exit
+
+# convert HTTP request to gemini
+host="${PATH_INFO:1}"
+host="${host%%/*}"
+[[ "$host" != '*:*' ]] && host="$host:1965"
+gemini="gemini:/${REQUEST_URI:${#SCRIPT_NAME}}"
+
+if ! [[ "$host" =~ '^[a-z0-9]*\.shpakovsky.ru:1965$' ]]; then
+	echo 'Response-Code: 20'
+	echo 'Content-Type: text/gemini'
+	echo
+	echo '# No access'
+	echo 'This is not a generic proxy to browse arbitrary capsules, sorry. Please use a real Gemini proxy to browse the requested URL'
+	echo '```'
+	echo "$gemini"
+	exit 0
+fi
+
+remote_ip="$HTTP_X_REAL_IP"
+test -z "$remote_ip" && remote_ip="$REMOTE_ADDR"
+
+# echo
+# echo $host
+# echo $remote_ip
+# echo $gemini
+# exit
+
+# echo
+# echo \{ echo "PROXY for $remote_ip"\; echo "$gemini"\; \} \| timeout 10 nc gemini 1234
+# exit
+
+{ echo "PROXY for $remote_ip"; echo "$gemini"; } | timeout 10 nc gemini 1234 | (
+	# convert gemini response to HTTP
+	read -r code line;
+	test -z "$code" && code="01"
+	echo "Response-Code: $code"
+	test "$code" = 20 && echo "Content-Type: $line" || echo "Meta: $line"
+	echo
+	cat
+)
