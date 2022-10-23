@@ -46,10 +46,10 @@ titan="titan:/${REQUEST_URI:${#SCRIPT_NAME}};size=$CONTENT_LENGTH"
 # exit
 
 # echo
-# echo \{ echo "$titan"\; cat \; \} \| timeout 10 openssl s_client -crlf -connect $host:1965 -quiet 2\>/dev/null
+# echo \{ echo "$titan"\; echo "$(cat)" \; \} \| timeout 10 openssl s_client -crlf -connect $host -quiet 2\>/dev/null
 # exit
 
-{ echo "$titan"; cat ; } | openssl s_client -connect "$host" -quiet 2>/dev/null | (
+{ echo "$titan"; cat ; } | timeout 10 openssl s_client -crlf -connect "$host" -quiet 2>/dev/null | (
 	# convert gemini response to HTTP
 	read -r code line;
 	test -z "$code" && code="00"

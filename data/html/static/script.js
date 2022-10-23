@@ -18,7 +18,7 @@ loadStart=window.performance.now();
 function url2proxyURL(url){
 	const abs_url=new URL(url, display_url).href;
 	const proto=abs_url.substr(0,abs_url.indexOf(':'));
-	if(proto=='gemini' || proto=='spartan' || proto=='gopher') {
+	if(proto=='gemini' || proto=='spartan' || proto=='gopher' || proto=='titan') {
 		return location.origin+'/'+abs_url.replace('://','/');
 	} else {
 		return abs_url;
@@ -34,8 +34,20 @@ function url2proxyAPIURL(url){
 	return location.origin+'/cgi-bin/'+abs_url.replace('://','/');
 }
 
-xhr = new XMLHttpRequest();
-xhr.open('GET', url2proxyAPIURL(display_url));
+if(display_proto == 'titan'){
+	xhr={
+		getResponseHeader:function(h){
+			if(h=="Date") return Date.now();
+			if(h=="Response-Code") return '20';
+			if(h=="Content-Type") return 'text/gemini';
+		},
+		responseText:'',
+		send:function(){ xhr_onload(); edit_show(); },
+	}
+} else {
+	xhr = new XMLHttpRequest();
+	xhr.open('GET', url2proxyAPIURL(display_url));
+}
 
 function gmititle(tokens){
 	var title='';
