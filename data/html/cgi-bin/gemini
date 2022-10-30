@@ -19,10 +19,12 @@ echo "HTTP/1.0 200 OK"
 # echo "Cache-Control: max-age=600" # 10min
 # echo "Cache-Control: max-age=3600" #1h
 # echo "Cache-Control: max-age=86400" #1d
+# echo "Cache-Control: max-age=604800" #1w
+# echo "Cache-Control: max-age=31536000" #1y
 if test "${PATH_INFO: -12}" == '/favicon.txt'; then
 	echo "Cache-Control: max-age=31536000" #1y
 else
-	echo "Cache-Control: max-age=604800" #1w
+	echo "Cache-Control: max-age=60" # 1min
 fi
 
 # echo
